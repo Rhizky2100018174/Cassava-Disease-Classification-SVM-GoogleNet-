@@ -121,7 +121,7 @@ elif input_opt == "Gunakan Kamera":
     if capture: image = Image.open(capture).convert("RGB")
 
 if image:
-    st.image(image, caption="Gambar Input", use_column_width=True)
+    st.image(image, caption="Gambar Input", use_container_width=True)
     pred_svm = predict_svm(cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR))
     pred_nopre = predict_googlenet_nopre(image)
     pred_pre = predict_googlenet_pretrain(image)
@@ -160,8 +160,12 @@ st.markdown("### 📊 **Ringkasan Akurasi & Confusion Matrix**")
 col1, col2, col3 = st.columns([1, 1, 1], gap="large")
 
 with col1:
-    st.markdown("### 📘 **SVM**")
-    st.markdown(f"**Akurasi:** `{acc_svm:.2%}`")
+    st.markdown("""
+        <div style='font-size:16px; text-align:center;'>
+            <strong style='font-size:18px;'>📘 SVM</strong><br>
+            Akurasi: <span style='color:limegreen; font-weight:bold;'>{:.2%}</span>
+        </div>
+    """.format(acc_svm), unsafe_allow_html=True)
     fig = plt.figure(figsize=(5, 4))
     sns.heatmap(cm_svm, annot=True, xticklabels=class_names, yticklabels=class_names, fmt="d", cmap="Blues")
     plt.xlabel("Prediksi")
@@ -170,8 +174,12 @@ with col1:
     st.pyplot(fig)
 
 with col2:
-    st.markdown("### 🧪 **GoogLeNet Tanpa Pretrain**")
-    st.markdown(f"**Akurasi:** `{acc_nopre:.2%}`")
+    st.markdown("""
+        <div style='font-size:16px; text-align:center;'>
+            <strong style='font-size:18px;'>🧪 GoogLeNet Tanpa Pretrain</strong><br>
+            Akurasi: <span style='color:orange; font-weight:bold;'>{:.2%}</span>
+        </div>
+    """.format(acc_nopre), unsafe_allow_html=True)
     fig = plt.figure(figsize=(5, 4))
     sns.heatmap(cm_nopre, annot=True, xticklabels=class_names, yticklabels=class_names, fmt="d", cmap="Oranges")
     plt.xlabel("Prediksi")
@@ -180,8 +188,12 @@ with col2:
     st.pyplot(fig)
 
 with col3:
-    st.markdown("### 🤖 **GoogLeNet Pretrained**")
-    st.markdown(f"**Akurasi:** `{acc_pre:.2%}`")
+    st.markdown("""
+        <div style='font-size:16px; text-align:center;'>
+            <strong style='font-size:18px;'>🤖 GoogLeNet Pretrained</strong><br>
+            Akurasi: <span style='color:limegreen; font-weight:bold;'>{:.2%}</span>
+        </div>
+    """.format(acc_pre), unsafe_allow_html=True)
     fig = plt.figure(figsize=(5, 4))
     sns.heatmap(cm_pre, annot=True, xticklabels=class_names, yticklabels=class_names, fmt="d", cmap="Greens")
     plt.xlabel("Prediksi")
