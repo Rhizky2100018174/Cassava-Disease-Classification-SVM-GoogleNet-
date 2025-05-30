@@ -103,8 +103,12 @@ def predict_svm(img):
     return class_names[pred[0]]
 
 # UI
-st.title("🌿 Deteksi Penyakit Daun Singkong")
-st.caption("Prediksi otomatis menggunakan SVM dan GoogLeNet (Pretrained & Non-Pretrained)")
+st.markdown("""
+    <div style='text-align: justify'>
+        <h1 style='text-align: center;'>🌿 Deteksi Penyakit Daun Singkong</h1>
+        <p>Prediksi otomatis menggunakan SVM dan GoogLeNet (Pretrained & Non-Pretrained)</p>
+    </div>
+""", unsafe_allow_html=True)
 
 # Input
 image = None
