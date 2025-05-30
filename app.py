@@ -13,23 +13,6 @@ import matplotlib.pyplot as plt
 # Konfigurasi halaman
 st.set_page_config(page_title="Deteksi Penyakit Daun Singkong", layout="centered")
 
-# Load class dan model
-class_names = joblib.load("class_names.pkl")
-
-model_pretrain = models.googlenet(pretrained=True)
-model_pretrain.fc = torch.nn.Linear(1024, len(class_names))
-model_pretrain.load_state_dict(torch.load("googlenet_pretrain_model.pth", map_location=torch.device('cpu')))
-model_pretrain.eval()
-
-model_nopre = models.googlenet(pretrained=False, aux_logits=False)
-model_nopre.fc = torch.nn.Linear(1024, len(class_names))
-model_nopre.load_state_dict(torch.load("googlenet_model.pth", map_location=torch.device('cpu')))
-model_nopre.eval()
-
-svm_model = joblib.load("svm_model.pkl")
-pca = joblib.load("pca.pkl")
-scaler = joblib.load("scaler.pkl")
-
 # Informasi penyakit
 disease_info = {
     "bacterial blight": {
@@ -54,7 +37,53 @@ disease_info = {
     }
 }
 
-# Preprocessing
+# ==== CACHE RESOURCE ====
+@st.cache_resource
+def load_class_names():
+    return joblib.load("class_names.pkl")
+
+@st.cache_resource
+def load_model_pretrain(class_names):
+    model = models.googlenet(pretrained=True)
+    model.fc = torch.nn.Linear(1024, len(class_names))
+    model.load_state_dict(torch.load("googlenet_pretrain_model.pth", map_location='cpu'))
+    model.eval()
+    return model
+
+@st.cache_resource
+def load_model_nopre(class_names):
+    model = models.googlenet(pretrained=False, aux_logits=False)
+    model.fc = torch.nn.Linear(1024, len(class_names))
+    model.load_state_dict(torch.load("googlenet_model.pth", map_location='cpu'))
+    model.eval()
+    return model
+
+@st.cache_resource
+def load_svm_model():
+    return joblib.load("svm_model.pkl")
+
+@st.cache_resource
+def load_scaler():
+    return joblib.load("scaler.pkl")
+
+@st.cache_resource
+def load_pca():
+    return joblib.load("pca.pkl")
+
+@st.cache_data
+def load_eval_results():
+    return joblib.load("eval_results.pkl")
+
+# Load resources
+class_names = load_class_names()
+model_pretrain = load_model_pretrain(class_names)
+model_nopre = load_model_nopre(class_names)
+svm_model = load_svm_model()
+scaler = load_scaler()
+pca = load_pca()
+acc_pre, acc_nopre, acc_svm, cm_pre, cm_nopre, cm_svm = load_eval_results()
+
+# ==== FUNGSI PREDIKSI ====
 def preprocess_image(img):
     if not isinstance(img, np.ndarray):
         img = np.array(img)
@@ -102,7 +131,7 @@ def predict_svm(img):
     pred = svm_model.predict(reduced)
     return class_names[pred[0]]
 
-# UI
+# ==== ANTARMUKA APLIKASI ====
 st.markdown("""
     <div style='text-align: justify'>
         <h1 style='text-align: center;'>🌿 Deteksi Penyakit Daun Singkong</h1>
@@ -110,7 +139,6 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
-# Input
 image = None
 input_opt = st.radio("📤 Pilih metode input:", ["Unggah Gambar", "Gunakan Kamera"])
 if input_opt == "Unggah Gambar":
@@ -147,13 +175,7 @@ if image:
         st.markdown(f"**Penyebab:** {disease_info[pred_pre]['penyebab']}")
         st.markdown(f"**Solusi:** {disease_info[pred_pre]['solusi']}")
 
-# Evaluasi dari file
-@st.cache_resource
-def load_evaluation():
-    return joblib.load("eval_results.pkl")
-
-acc_pre, acc_nopre, acc_svm, cm_pre, cm_nopre, cm_svm = load_evaluation()
-
+# ==== EVALUASI HASIL ====
 st.markdown("---")
 st.markdown("### 📊 **Ringkasan Akurasi & Confusion Matrix**")
 
